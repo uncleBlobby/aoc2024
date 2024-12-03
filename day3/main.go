@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -71,13 +72,35 @@ func main() {
 
 	// find all index of matches of do and don't in set to track on/off state
 
+	completeInstructionList := []Instruction{}
+
+	doInstructions := doInst.FindAllString(s.String(), -1)
 	doIndexes := doInst.FindAllStringIndex(s.String(), -1)
+
+	for i := 0; i < len(doInstructions); i++ {
+		i := Instruction{
+			Name:       DO,
+			StartIndex: doIndexes[i][0],
+			EndIndex:   doIndexes[i][1],
+		}
+		completeInstructionList = append(completeInstructionList, i)
+	}
 
 	for _, do := range doIndexes {
 		log.Printf("do matches: %v", do)
 	}
 
+	dontInstructions := donotInst.FindAllString(s.String(), -1)
 	dontIndexes := donotInst.FindAllStringIndex(s.String(), -1)
+
+	for i := 0; i < len(dontInstructions); i++ {
+		i := Instruction{
+			Name:       DONT,
+			StartIndex: dontIndexes[i][0],
+			EndIndex:   dontIndexes[i][1],
+		}
+		completeInstructionList = append(completeInstructionList, i)
+	}
 
 	for _, dont := range dontIndexes {
 		log.Printf("dont matches: %v", dont)
@@ -85,13 +108,52 @@ func main() {
 
 	//dos := doInst.FindStringIndex()
 
-	matches := r.FindAllString(s.String(), -1)
+	multiplyInstructions := r.FindAllString(s.String(), -1)
+	multiplyInstructionIndices := r.FindAllStringIndex(s.String(), -1)
 
+	for i := 0; i < len(multiplyInstructions); i++ {
+		nums := r2.FindAllString(multiplyInstructions[i], -1)
+		num0, err := strconv.Atoi(nums[0])
+		if err != nil {
+			log.Printf("strconv: %s", err)
+			os.Exit(1)
+		}
+		num1, err := strconv.Atoi(nums[1])
+		if err != nil {
+			log.Printf("strconv: %s", err)
+			os.Exit(1)
+		}
+		i := Instruction{
+			Name:       MULTIPLY,
+			StartIndex: multiplyInstructionIndices[i][0],
+			EndIndex:   multiplyInstructionIndices[i][1],
+			Param1:     num0,
+			Param2:     num1,
+		}
+		completeInstructionList = append(completeInstructionList, i)
+	}
 	//var totalSum = 0
 
 	//var machineOn = true
 
-	_ = SumAllMatches(r2, matches)
+	//_ = SumAllMatches(r2, matches)
+
+	for _, instruction := range completeInstructionList {
+		fmt.Printf("%#v\n", instruction)
+	}
+
+	sort.Slice(completeInstructionList, func(a, b int) bool {
+		return completeInstructionList[a].StartIndex < completeInstructionList[b].StartIndex
+	})
+
+	for _, instruction := range completeInstructionList {
+		fmt.Printf("%s\n", instruction)
+	}
+
+	m := NewMachine()
+	m.InitializeProgram(completeInstructionList)
+	m.RunProgram()
+	m.OutputResult()
 }
 
 func SumAllMatches(r2 *regexp.Regexp, matches []string) int {

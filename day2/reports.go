@@ -75,11 +75,6 @@ func reportIsSorted(report []int) bool {
 }
 
 func (r *Report) CheckProblemDampener() {
-	// if checkIfReportIsSortedWithOneDeletion(r.Levels) {
-	// 	if reportHasSafeLevels(r.Levels) {
-	// 		r.Safe = true
-	// 	}
-	// }
 
 	if checkIfReportIsSafeWithOneDeletion(r.Levels) {
 		r.Safe = true
@@ -103,14 +98,6 @@ func checkIfReportIsSafeWithOneDeletion(report []int) bool {
 	}
 
 	return false
-	// withOneDeleted := []int{}
-	// for i := 0; i < len(report)-1; i++ {
-	// 	if report[i+1] <= report[i] {
-	// 		withOneDeleted = deleteIndex(report, i+1)
-	// 		return reportIsSorted(withOneDeleted)
-	// 	}
-	// }
-	// return false
 }
 
 func deleteIndex(s []int, index int) []int {

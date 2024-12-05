@@ -89,6 +89,35 @@ func (pq *PrintQueue) PartTwo(results Results) Results {
 			}
 		}
 
+		// if pq.UpdateIsValid(update) {
+		// 	results.ValidUpdates = append(results.ValidUpdates, update)
+		// }
+
+		for !pq.UpdateIsValid(update) {
+			for i := 0; i < len(update.Pages)-1; i++ {
+				firstPage := update.Pages[i]
+				secondPage := update.Pages[i+1]
+				thisPair := PageOrderingRule{
+					First:  firstPage,
+					Second: secondPage,
+				}
+
+				for _, rule := range pq.Rules {
+					if thisPair.First == rule.First && thisPair.Second == rule.Second {
+						//ordering is correct
+
+						continue
+					}
+					if thisPair.First == rule.Second && thisPair.Second == rule.First {
+						//ordering is incorrect, entire page list is invalid
+						//break middle
+
+						update.Pages[i], update.Pages[i+1] = update.Pages[i+1], update.Pages[i]
+					}
+				}
+			}
+		}
+
 		if pq.UpdateIsValid(update) {
 			results.ValidUpdates = append(results.ValidUpdates, update)
 		}

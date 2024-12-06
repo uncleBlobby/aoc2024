@@ -51,6 +51,16 @@ func main() {
 	fmt.Printf("%d total sum after part2\n", totalSum)
 }
 
+func (pq *PrintQueue) CheckIfRulesContain(num int) bool {
+	for _, rule := range pq.Rules {
+		if rule.First == num || rule.Second == num {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (pq *PrintQueue) PartTwo(results Results) Results {
 	// invalidUpdates := []Update{}
 	// for _, update := range pq.Updates {
@@ -59,21 +69,33 @@ func (pq *PrintQueue) PartTwo(results Results) Results {
 	// 	}
 	// }
 
+	secondTimeValidUpdates := []Update{}
+
 	for _, update := range results.InvalidUpdates {
 
 		// clone := Update{}
 		// _ = copy(clone, update)
 
+	outer:
 		for !pq.UpdateIsValid(update) {
+
 			for i := 0; i < len(update.Pages)-1; i++ {
+
 				firstPage := update.Pages[i]
+				if !pq.CheckIfRulesContain(firstPage) {
+					break outer
+				}
 				secondPage := update.Pages[i+1]
+				if !pq.CheckIfRulesContain(secondPage) {
+					break outer
+				}
 				thisPair := PageOrderingRule{
 					First:  firstPage,
 					Second: secondPage,
 				}
 
 				for _, rule := range pq.Rules {
+
 					if thisPair.First == rule.First && thisPair.Second == rule.Second {
 						//ordering is correct
 
@@ -93,38 +115,48 @@ func (pq *PrintQueue) PartTwo(results Results) Results {
 		// 	results.ValidUpdates = append(results.ValidUpdates, update)
 		// }
 
-		for !pq.UpdateIsValid(update) {
-			for i := 0; i < len(update.Pages)-1; i++ {
-				firstPage := update.Pages[i]
-				secondPage := update.Pages[i+1]
-				thisPair := PageOrderingRule{
-					First:  firstPage,
-					Second: secondPage,
-				}
+		// for !pq.UpdateIsValid(update) {
+		// 	for i := 0; i < len(update.Pages)-1; i++ {
+		// 		firstPage := update.Pages[i]
+		// 		secondPage := update.Pages[i+1]
+		// 		thisPair := PageOrderingRule{
+		// 			First:  firstPage,
+		// 			Second: secondPage,
+		// 		}
 
-				for _, rule := range pq.Rules {
-					if thisPair.First == rule.First && thisPair.Second == rule.Second {
-						//ordering is correct
+		// 		for _, rule := range pq.Rules {
+		// 			if thisPair.First == rule.First && thisPair.Second == rule.Second {
+		// 				//ordering is correct
 
-						continue
-					}
-					if thisPair.First == rule.Second && thisPair.Second == rule.First {
-						//ordering is incorrect, entire page list is invalid
-						//break middle
+		// 				continue
+		// 			}
+		// 			if thisPair.First == rule.Second && thisPair.Second == rule.First {
+		// 				//ordering is incorrect, entire page list is invalid
+		// 				//break middle
 
-						update.Pages[i], update.Pages[i+1] = update.Pages[i+1], update.Pages[i]
-					}
-				}
-			}
-		}
+		// 				update.Pages[i], update.Pages[i+1] = update.Pages[i+1], update.Pages[i]
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 		if pq.UpdateIsValid(update) {
-			results.ValidUpdates = append(results.ValidUpdates, update)
+			// results.ValidUpdates = append(results.ValidUpdates, update)
+			secondTimeValidUpdates = append(secondTimeValidUpdates, update)
 		}
 
 	}
 
-	fmt.Printf("%d valid after part2\n", len(results.ValidUpdates))
+	var sumOfMiddles = 0
+	for _, validUpdate := range secondTimeValidUpdates {
+		middleIndex := len(validUpdate.Pages) / 2
+		sumOfMiddles += validUpdate.Pages[middleIndex]
+	}
+
+	fmt.Printf("total sum: %d\n", sumOfMiddles)
+	fmt.Printf("%d valid after part2\n", len(secondTimeValidUpdates))
+
+	// fmt.Printf("%d valid after part2\n", len(results.ValidUpdates)-startValidUpdates)
 	return results
 }
 
@@ -177,7 +209,7 @@ func (pq *PrintQueue) PartOne() Results {
 	}
 
 	fmt.Printf("total sum: %d\n", sumOfMiddles)
-	fmt.Printf("%d valid after part1", len(validUpdates))
+	fmt.Printf("%d valid after part1\n", len(validUpdates))
 
 	return Results{
 		ValidUpdates:   validUpdates,
